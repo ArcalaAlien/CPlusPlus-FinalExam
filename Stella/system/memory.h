@@ -17,9 +17,10 @@ namespace Stella
 
     enum AddressAllocatorError
     {
-        AllocatorError_AddressExists = -2,
+        AllocatorError_InvalidDataType,
+        AllocatorError_AddressExists,
         AllocatorError_MemoryOverflow,
-        AllocatorError_None
+        AllocatorError_None = 0
     };
 
     enum DataType

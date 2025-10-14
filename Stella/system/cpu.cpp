@@ -7,6 +7,24 @@ namespace Stella
 {
     std::list<std::unique_ptr<StellarBase>> CPU::registers;
 
+    const std::unique_ptr<StellarBase> CPU::getObjectFromAddress(int address)
+    {
+        for (std::unique_ptr<StellarBase> &objPtr: registers)
+            if (objPtr->viewAs()->getAddress() == address)
+                return std::move(objPtr);
+
+        return nullptr;
+    }
+
+    const int CPU::getAddressFromObject(std::unique_ptr<StellarBase> obj)
+    {
+        for (std::unique_ptr<StellarBase> &objPtr: registers)
+            if (objPtr == obj)
+                return objPtr->viewAs()->getAddress();
+
+        return CPUError_InvalidAddress;
+    }
+
     CPUError CPU::load(int address)
     {
         if (registers.size() >= MAX_REGISTERS)
@@ -15,15 +33,32 @@ namespace Stella
             return CPUError_RegistersFull;
         }
 
-        std::unique_ptr<StellarBase> baseObjPointer = nullptr;
+        std::unique_ptr<StellarBase> baseObjPtr = nullptr;
         if (!Memory::isAddressAllocated(address) ||
-            (baseObjPointer = Memory::getFromMemory(address)) == nullptr)
+            (baseObjPtr = Memory::getFromMemory(address)) == nullptr)
         {
             std::cerr<<"\nERROR: ATTEMPTED TO GET INVALID ADDRESS "<<address<<" FROM MEMORY!";
             return CPUError_InvalidAddress;
         }
 
-        registers.push_back(std::move(baseObjPointer));
+        if (!baseObjPtr)
+        {
+            std::cerr<<"\nERROR: NULL POINTER ATTEMPTING TO BE PASSED TO CPU REGISTER!";
+            return CPUError_NullPointer;
+        }
+
+        std::unique_ptr<StellarBase> newPtr = nullptr;
+        switch(baseObjPtr->getType())
+        {
+            case DataType_Int:
+                newPtr.reset(new Asteroid(*dynamic_cast<Asteroid*>(baseObjPtr.get())));
+                break;
+            default:
+                std::cerr<<"\nERROR: OBJECT HAS AN UNSUPPORTED DATATYPE "<<baseObjPtr->getType();
+                return CPUError_InvalidDataType;
+        }
+
+        registers.push_back(std::move(newPtr));
         return CPUError_None;
     }
 
@@ -35,47 +70,82 @@ namespace Stella
             return CPUError_RegistersEmpty;
         }
 
-        if (Memory::isAddressAllocated(address) ||
-            Memory::getFromMemory(address) != nullptr)
-        {
-            std::cerr<<"\nERROR: ATTEMPTED TO OVERWRITE ALLOCATED ADDRESS!";
-            return CPUError_InvalidAddress;
-        }
+        int baseAddress=-1;
+        StellarBase* baseObj;
 
-        StellarBase *baseObj = nullptr;
-        DataType dt = DataType::DataType_Invalid;
-        for (std::unique_ptr<StellarBase> &ptrObj: registers)
+        std::list<std::unique_ptr<StellarBase>>::iterator it;
+        while (it != registers.end())
         {
-            baseObj = ptrObj.get();
-            
+            std::unique_ptr<StellarBase> baseObjPtr = std::move(*it);
 
-            if (baseObj && (baseObj->getAddress() == address)
+            if (baseObjPtr == nullptr)
             {
-                std::cout<<"\nAddress "<<baseObj->getAddress()<<" is equal to "<<address;
-                /*
-                registers.remove(ptrObj);
+                std::cerr<<"\nERROR: UNABLE TO STORE, REGISTER HAS INVALID POINTER OBJECT!";
+                return CPUError_NullPointer;
+            }
 
-                std::unique_ptr<StellarBase> newPtrObj = nullptr;
-                switch (dt)
+            baseAddress = baseObjPtr->getAddress();
+            if (baseAddress == address && baseAddress >= AllocatorError_None)
+            {
+                int newAddress = Memory::allocateAddress();
+                if (newAddress < AddressAllocatorError::AllocatorError_None)
+                    return CPUError_InvalidAddress;
+
+                std::unique_ptr<StellarBase> newobjPtr;
+                switch (baseObjPtr->getType())
                 {
                     case DataType_Int:
-                        newPtrObj.reset(baseObj->clone());
+                        newobjPtr.reset(new Asteroid(*dynamic_cast<Asteroid*>(baseObj)));
                         break;
                     default:
                         return CPUError_InvalidDataType;
                 }
 
-                int newAddress = Memory::allocateAddress();
-                if (newAddress < AddressAllocatorError::AllocatorError_None)
-                    return CPUError_InvalidAddress;
-
-                newPtrObj.get()->setAddress(newAddress);
-
-                registers.push_back(std::move(newPtrObj));
-                */
+                Memory::addToMemory(newAddress, std::move(newobjPtr));
             }
+
+            it++;
         }
 
         return CPUError_None;
+    }
+
+    CPUError CPU::change(int address, std::any value)
+    {
+        std::unique_ptr<StellarBase> obj = getObjectFromAddress(address);
+
+        if (!obj)
+        {
+            std::cerr<<"\nERROR: UNABLE TO FIND OBJECT FROM ADDRESS "<<address;
+            return CPUError_InvalidAddress;
+        }
+
+        StellarBase* baseObj = obj.get();
+        {
+            Asteroid* tempA;
+            switch (obj->getType())
+            {
+                case DataType_Int:
+                    tempA = dynamic_cast<Asteroid*>(baseObj);
+                    tempA->setValue(std::any_cast<int>(value));
+                    obj.reset(new Asteroid(*tempA));
+                    break;
+                default:
+                    std::cerr<<"\nERROR: OBJECT HAS AN UNSUPPORTED DATATYPE "<<obj->getType();
+                    return CPUError_InvalidDataType;
+            }
+        }
+
+        registers.remove(obj);
+        registers.push_back(std::move(obj));
+        return CPUError_None;
+    }
+
+    void CPU::printInRegisters()
+    {
+        for (std::unique_ptr<StellarBase> &baseObj: registers)
+        {
+
+        }
     }
 }

@@ -9,3 +9,6 @@ Concepts used from C++:
     static variables,
     STL Containers,
     pointers and references
+    std::any,
+    downcasting,
+    dynamic casting,

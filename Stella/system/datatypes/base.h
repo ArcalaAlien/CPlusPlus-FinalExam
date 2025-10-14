@@ -1,6 +1,7 @@
 #ifndef STL_BASEH
 #define STL_BASEH
 
+#include <any>
 #include "../memory.h"
 
 namespace Stella
@@ -39,7 +40,11 @@ namespace Stella
             virtual const int    getAddress();
             virtual void         setAddress(int);
 
-            virtual StellarBase* clone() { return new StellarBase(*this); };
+            virtual const std::any  getValue();
+            virtual void            setValue(std::any);
+
+            virtual StellarBase* viewAs() { return dynamic_cast<StellarBase*>(this); }
+            virtual StellarBase* clone()  { return new StellarBase(*this); };
     };
 }
 

@@ -7,27 +7,33 @@ namespace Stella
 {
     void Asteroid::testCPU()
     {
-        CPUError e;
-        if ((e=CPU::load(this->getAddress())) > CPUError::CPUError_None)
+        CPUError err;
+        if ((err=CPU::load(this->getAddress())) < CPUError::CPUError_None)
         {
             std::cout<<"\nWhoops! CPU was not able to load this address "<<this->getAddress()<<"from memory!";
             return;
         }
-        std::cout<<"\nSucessfully loaded address "<<this->address<<" from memory into the CPU!";
 
-
-        if ((e=CPU::store(this->address)) > CPUError::CPUError_None)
+        if ((err=CPU::store(this->address)) < CPUError::CPUError_None)
         {
             std::cout<<"\nWhoops! CPU was not able to load this address to memory!";
             return;
         }
-        std::cout<<"\nSucessfully loaded address "<<this->address<<" from CPU into memory!";
+
+        std::cout<<"\nCPU Test Successful!";
     }
 
     const int Asteroid::getAddress()            { return this->address; }
     void      Asteroid::setAddress(int address) { this->address = address; }
 
-    const int Asteroid::getValue()              { return this->value; }
-    void      Asteroid::setValue(int value)     { this->value = value; }
+    const std::any Asteroid::getValue()              { return this->value; }
+    void           Asteroid::setValue(int value)     { this->value = value; }
+
+    void Asteroid::operator=(int value)
+    {
+        CPU::load(this->address);
+        CPU::change(this->address, value);
+        CPU::store(this->address);
+    }
 }
 

@@ -19,24 +19,6 @@ namespace Stella
         return AllocatorError_AddressExists;
     }
 
-    /*
-    void Memory::printInMemory()
-    {
-        std::map<int, std::unique_ptr<StellarBase>>::iterator it;
-        int address;
-        for (int i=0; i<memoryMap.size(); i++)
-        {
-            it = memoryMap.find(i);
-            if (it != memoryMap.end())
-            {
-                address = it->second->getAddress();
-                std::cout<<address<<std::endl;
-            }
-
-        }
-    }
-    */
-
     bool Memory::isAddressAllocated(int address) { return (memoryMap.find(address) != memoryMap.end()); }
 
     const int Memory::addToMemory(StellarBase* baseObject)
@@ -60,10 +42,22 @@ namespace Stella
             }
         }
 
+        baseObject->viewAs()->setAddress(newAddress);
+
         // Now that we've got the address of our object
         // Let's make a unique pointer to it for safe
         // memory manipulation.
-        std::unique_ptr<StellarBase> baseObjPtr (new StellarBase(*baseObject));
+
+        std::unique_ptr<StellarBase> baseObjPtr = nullptr;
+        switch (baseObject->getType())
+        {
+            case DataType_Int:
+                baseObjPtr.reset(new Asteroid(*dynamic_cast<Asteroid*>(baseObject)));
+                break;
+            default:
+                std::cerr<<"\nERROR: OBJECT HAS AN UNSUPPORTED DATATYPE "<<baseObject->getType();
+                return AllocatorError_InvalidDataType;
+        }
 
         // We've finally got both our pointer, and
         // our new address. We can go ahead and put our
@@ -82,7 +76,7 @@ namespace Stella
 
         if (address < AllocatorError_None)
         {
-            std::cerr<<"ERROR! UNABLE TO ADD NEW OBJECT TO MEMORY!";
+            std::cerr<<"\nERROR! UNABLE TO ADD NEW OBJECT TO MEMORY!";
             return;
         }
 
@@ -110,6 +104,8 @@ namespace Stella
     void Memory::printMemory()
     {
         std::map<int, std::unique_ptr<StellarBase>>::iterator it;
+        std::unique_ptr<StellarBase> basePtr;
+        StellarBase* baseObj;
 
         std::cout<<"\nThere are "<<memoryMap.size()<<" objects in memory.";
 
@@ -117,17 +113,25 @@ namespace Stella
         {
             if ((it = memoryMap.find(i)) != memoryMap.end())
             {
-                switch (it->second.get()->getType())
+                basePtr = std::move(it->second);
+                baseObj = basePtr.get();
                 {
-                    case DataType_Int:
-                        std::cout<<"\nFound an object at address "<<it->first
-                                 <<" with a value of "<<dynamic_cast<Asteroid*>(it->second.get())->getValue();
-                        break;
-                    default:
-                        break;
-                }
+                    Asteroid* tempA = dynamic_cast<Asteroid*>(baseObj);
+                    switch (baseObj->getType())
+                    {
+                        case DataType_Int:
+                            if (tempA == nullptr)
+                            {
+                                std::cout<<"\nFound invalid Asteroid at address: "<<i;
+                                break;
+                            }
 
-                break;
+                            std::cout<<"\nFound Asteroid at address: "<<i<<" with value: "<<std::any_cast<int>(tempA->getValue());
+                            break;
+                        default:
+                            break;
+                    }
+                } // end of code block
             }
         }
     }

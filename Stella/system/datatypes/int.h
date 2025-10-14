@@ -22,11 +22,13 @@ namespace Stella
             const int getAddress();
             void      setAddress(int);
 
-            const int getValue();
-            void      setValue(int);
+            const std::any getValue();
+            void           setValue(int);
 
             Asteroid* viewAs()  { return dynamic_cast<Asteroid*>(this); }
             Asteroid* clone()   { return new Asteroid(*this); };
+
+            void operator=(int);
     };
 }
 

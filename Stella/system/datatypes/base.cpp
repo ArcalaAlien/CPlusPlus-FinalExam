@@ -7,4 +7,8 @@ namespace Stella
 
     const DataType StellarBase::getType()       { return this->type; }
     void StellarBase::setType(DataType type)    { this->type = type; }
+
+    const std::any StellarBase::getValue() { return this->value; }
+    void StellarBase::setValue(std::any value) { this->value = std::any_cast<int>(value); }
+
 }

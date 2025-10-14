@@ -1,16 +1,10 @@
 #include "Stella/Stella.h"
 using namespace Stella;
 
-
 int main()
 {
-    Asteroid a, b;
-
-    a.testCPU();
-    std::cout<<"\n";
-    b.testCPU();
-
-    //Memory::printMemory();
+    Asteroid a;
+    a = 5;
 
     return 0;
 }
