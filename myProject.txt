@@ -1,0 +1,11 @@
+Concepts used from C++:
+
+    enums,
+    classes,
+    abstract classes,
+    templates,
+    inheritance,
+    polymorphism,
+    static variables,
+    STL Containers,
+    pointers and references
