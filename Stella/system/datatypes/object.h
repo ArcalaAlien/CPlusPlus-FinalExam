@@ -29,14 +29,16 @@ namespace Stella
             virtual const int   getAddress() = 0;
             virtual void        setAddress(int) = 0;
 
-            virtual const std::any getValue()  = 0;
-            virtual void           setValue(T) = 0;
+            virtual void getValue(T&)  = 0;
+            virtual void setValue(T) = 0;
 
             // This will allow us to return the
             // address of this templated StellarObject child, allowing us to access StellarObject
             // functions no matter the type.
             virtual StellarObject<T>* viewAs() = 0;
             virtual StellarObject<T>* clone() = 0;
+
+            virtual void operator=(T) = 0;
     };
 }
 

@@ -71,7 +71,9 @@ namespace Stella
 
     void Memory::addToMemory(int& address, std::unique_ptr<StellarBase> objPtr)
     {
-        if (Memory::isAddressAllocated(address))
+        // Let's try to get a new address if the one we chose
+        // is already allocated
+        if (isAddressAllocated(address))
             address = allocateAddress();
 
         if (address < AllocatorError_None)
@@ -80,13 +82,13 @@ namespace Stella
             return;
         }
 
-        if (!objPtr)
+        if (!objPtr.get())
         {
             std::cerr<<"ERROR! UNIQUE_PTR DOESN'T HAVE A VALUE!";
             return;
         }
 
-        memoryMap.insert(std::pair<int, std::unique_ptr<StellarBase>>(address, std::move(objPtr)));
+        addToMemory(objPtr.get());
     }
 
     std::unique_ptr<StellarBase> Memory::getFromMemory(int address)
@@ -104,7 +106,6 @@ namespace Stella
     void Memory::printMemory()
     {
         std::map<int, std::unique_ptr<StellarBase>>::iterator it;
-        std::unique_ptr<StellarBase> basePtr;
         StellarBase* baseObj;
 
         std::cout<<"\nThere are "<<memoryMap.size()<<" objects in memory.";
@@ -113,11 +114,11 @@ namespace Stella
         {
             if ((it = memoryMap.find(i)) != memoryMap.end())
             {
-                basePtr = std::move(it->second);
-                baseObj = basePtr.get();
+                baseObj = it->second.get();
                 {
                     Asteroid* tempA = dynamic_cast<Asteroid*>(baseObj);
-                    switch (baseObj->getType())
+                    int tempValue=0;
+                    switch (baseObj->viewAs()->getType())
                     {
                         case DataType_Int:
                             if (tempA == nullptr)
@@ -126,7 +127,8 @@ namespace Stella
                                 break;
                             }
 
-                            std::cout<<"\nFound Asteroid at address: "<<i<<" with value: "<<std::any_cast<int>(tempA->getValue());
+                            tempA->getValue(tempValue);
+                            std::cout<<"\nFound Asteroid at address: "<<i<<" with value: "<<tempValue;
                             break;
                         default:
                             break;

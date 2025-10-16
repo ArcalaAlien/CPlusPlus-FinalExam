@@ -8,6 +8,11 @@ namespace Stella
 {
     class MissionControl
     {
-        void operator<<(StellarBase*);
+        public:
+            MissionControl() {}
+
+        MissionControl& operator|(Asteroid obj);
+
+        MissionControl& operator/(StellarBase* obj);
     };
 }

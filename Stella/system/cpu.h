@@ -1,7 +1,6 @@
 #ifndef STL_CPUH
 #define STL_CPUH
 
-#include <any>
 #include <exception>
 #include <list>
 
@@ -18,6 +17,7 @@ namespace Stella
         CPUError_RegistersFull,
         CPUError_InvalidAddress,
         CPUError_InvalidDataType,
+        CPUError_InvalidObject,
         CPUError_NullPointer,
         CPUError_None = 0
     };
@@ -26,9 +26,11 @@ namespace Stella
     {
         private:
             static std::list<std::unique_ptr<StellarBase>> registers;
+            static std::list<std::unique_ptr<StellarBase>>::iterator cpuIt;
 
-            static const std::unique_ptr<StellarBase> getObjectFromAddress(int);
+            static CPUError getObjectFromAddress(int, StellarBase*&);
             static const int getAddressFromObject(std::unique_ptr<StellarBase>);
+            static std::list<std::unique_ptr<StellarBase>>::iterator removeFromRegister(StellarBase*);
 
         public:
             // Load from memory into CPU Register from an address
@@ -38,7 +40,7 @@ namespace Stella
             static CPUError store(int);
 
             // Change the value of an object in the register.
-            static CPUError change(int, std::any);
+            static CPUError change(int, int);
 
             // // Add two values
             // StellarBase add(StellarBase, StellarBase);
@@ -55,7 +57,7 @@ namespace Stella
             // // Compare two values
             // StellarBase compare(StellarBase, StellarBase);
 
-            static void printInRegisters();
+            static void dump();
     };
 }
 

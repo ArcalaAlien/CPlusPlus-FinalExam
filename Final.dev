@@ -29,7 +29,7 @@ IncludeVersionInfo=0
 SupportXPThemes=0
 CompilerSet=0
 CompilerSettings=0000000000000000001000000
-UnitCount=11
+UnitCount=14
 
 [VersionInfo]
 Major=1
@@ -61,16 +61,6 @@ OverrideBuildCmd=0
 BuildCmd=
 
 [Unit2]
-FileName=stellaTest.cpp
-CompileCpp=1
-Folder=
-Compile=1
-Link=1
-Priority=1000
-OverrideBuildCmd=0
-BuildCmd=
-
-[Unit3]
 FileName=Stella\Stella.h
 CompileCpp=1
 Folder=Stella
@@ -80,7 +70,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit4]
+[Unit3]
 FileName=Stella\system\memory.h
 CompileCpp=1
 Folder=Stella/system
@@ -90,7 +80,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit5]
+[Unit4]
 FileName=Stella\system\memory.cpp
 CompileCpp=1
 Folder=Stella/system
@@ -100,7 +90,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit6]
+[Unit5]
 FileName=Stella\system\datatypes.h
 CompileCpp=1
 Folder=Stella/system
@@ -110,7 +100,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit7]
+[Unit6]
 FileName=Stella\system\datatypes\base.h
 CompileCpp=1
 Folder=Stella/system/datatypes
@@ -120,7 +110,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit8]
+[Unit7]
 FileName=Stella\system\datatypes\base.cpp
 CompileCpp=1
 Folder=Stella/system/datatypes
@@ -130,7 +120,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit9]
+[Unit8]
 FileName=Stella\system\datatypes\int.cpp
 CompileCpp=1
 Folder=Stella/system/datatypes
@@ -140,7 +130,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit10]
+[Unit9]
 FileName=Stella\system\datatypes\int.h
 CompileCpp=1
 Folder=Stella/system/datatypes
@@ -150,10 +140,50 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit11]
+[Unit10]
 FileName=Stella\system\datatypes\object.h
 CompileCpp=1
 Folder=Stella/system/datatypes
+Compile=1
+Link=1
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=
+
+[Unit11]
+FileName=Stella\system\stio.cpp
+CompileCpp=1
+Folder=Stella/system
+Compile=1
+Link=1
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=
+
+[Unit12]
+FileName=Stella\system\stio.h
+CompileCpp=1
+Folder=Stella/system
+Compile=1
+Link=1
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=
+
+[Unit13]
+FileName=Stella\system\cpu.cpp
+CompileCpp=1
+Folder=Stella/system
+Compile=1
+Link=1
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=
+
+[Unit14]
+FileName=Stella\system\cpu.h
+CompileCpp=1
+Folder=Stella/system
 Compile=1
 Link=1
 Priority=1000

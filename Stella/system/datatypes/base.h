@@ -1,7 +1,6 @@
 #ifndef STL_BASEH
 #define STL_BASEH
 
-#include <any>
 #include "../memory.h"
 
 namespace Stella
@@ -20,6 +19,9 @@ namespace Stella
     // automatically deallocate it when it gets out of scope.
     class StellarBase
     {
+        friend std::istream& operator>>(std::istream&, StellarBase&);
+        friend std::ostream& operator<<(std::ostream&, StellarBase&);
+
         protected:
             DataType type = DataType::DataType_Invalid;
             int address;
@@ -40,12 +42,32 @@ namespace Stella
             virtual const int    getAddress();
             virtual void         setAddress(int);
 
-            virtual const std::any  getValue();
-            virtual void            setValue(std::any);
+            virtual void getValue(int&);
+            virtual void getValue(float&);
+
+            virtual void setValue(int);
+            virtual void setValue(float);
 
             virtual StellarBase* viewAs() { return dynamic_cast<StellarBase*>(this); }
             virtual StellarBase* clone()  { return new StellarBase(*this); };
     };
+
+    /*
+        // Needed for type erasure!!
+        template <typename T>
+        class StellarWrapper
+        {
+            private:
+                const T *stellarObj;
+
+            public:
+                StellarWrapper(const T *stellarObj):
+                    stellarObj(stellarObj);
+
+                const T* viewAs() { return stellarObj->viewAs(); }
+                const T* clone()  { return stellarObj->clone(); }
+        }; // end of wrapper class
+    */
 }
 
 #endif

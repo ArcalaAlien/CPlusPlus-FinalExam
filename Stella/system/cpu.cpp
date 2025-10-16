@@ -1,19 +1,31 @@
-#include <any>
-
 #include "memory.h"
 #include "cpu.h"
 
 namespace Stella
 {
     std::list<std::unique_ptr<StellarBase>> CPU::registers;
+    std::list<std::unique_ptr<StellarBase>>::iterator CPU::cpuIt = registers.end();
 
-    const std::unique_ptr<StellarBase> CPU::getObjectFromAddress(int address)
+    CPUError CPU::getObjectFromAddress(int address, StellarBase* &obj)
     {
-        for (std::unique_ptr<StellarBase> &objPtr: registers)
-            if (objPtr->viewAs()->getAddress() == address)
-                return std::move(objPtr);
+        StellarBase* tempObj = nullptr;
+        for (cpuIt = registers.begin(); cpuIt != registers.end(); cpuIt++)
+        {
+            if ((tempObj = cpuIt->get()) == nullptr)
+            {
+                std::cerr<<"\nERROR! ATTEMPTED TO GET INVALID ADDRESS FROM CPU REGISTERS!";
+                return CPUError_InvalidAddress;
+            }
 
-        return nullptr;
+            if (tempObj->getAddress() == address)
+            {
+                obj = tempObj;
+                return CPUError_None;
+            }
+        }
+
+        obj = nullptr;
+        return CPUError_NullPointer;
     }
 
     const int CPU::getAddressFromObject(std::unique_ptr<StellarBase> obj)
@@ -35,7 +47,7 @@ namespace Stella
 
         std::unique_ptr<StellarBase> baseObjPtr = nullptr;
         if (!Memory::isAddressAllocated(address) ||
-            (baseObjPtr = Memory::getFromMemory(address)) == nullptr)
+            (baseObjPtr = std::move(Memory::getFromMemory(address))) == nullptr)
         {
             std::cerr<<"\nERROR: ATTEMPTED TO GET INVALID ADDRESS "<<address<<" FROM MEMORY!";
             return CPUError_InvalidAddress;
@@ -71,81 +83,93 @@ namespace Stella
         }
 
         int baseAddress=-1;
-        StellarBase* baseObj;
+        StellarBase* baseObj = nullptr;
 
-        std::list<std::unique_ptr<StellarBase>>::iterator it;
-        while (it != registers.end())
+        for (cpuIt = registers.begin(); cpuIt != registers.end(); cpuIt++)
         {
-            std::unique_ptr<StellarBase> baseObjPtr = std::move(*it);
-
-            if (baseObjPtr == nullptr)
+            if ((baseObj = cpuIt->get()) == nullptr)
             {
                 std::cerr<<"\nERROR: UNABLE TO STORE, REGISTER HAS INVALID POINTER OBJECT!";
+                cpuIt = registers.end();
                 return CPUError_NullPointer;
             }
 
-            baseAddress = baseObjPtr->getAddress();
+            baseAddress = baseObj->getAddress();
             if (baseAddress == address && baseAddress >= AllocatorError_None)
             {
-                int newAddress = Memory::allocateAddress();
-                if (newAddress < AddressAllocatorError::AllocatorError_None)
-                    return CPUError_InvalidAddress;
-
-                std::unique_ptr<StellarBase> newobjPtr;
-                switch (baseObjPtr->getType())
-                {
-                    case DataType_Int:
-                        newobjPtr.reset(new Asteroid(*dynamic_cast<Asteroid*>(baseObj)));
-                        break;
-                    default:
-                        return CPUError_InvalidDataType;
-                }
-
-                Memory::addToMemory(newAddress, std::move(newobjPtr));
+                Memory::addToMemory(baseObj);
+                cpuIt = removeFromRegister(baseObj);
+                break;
             }
-
-            it++;
         }
 
+        cpuIt = registers.end();
         return CPUError_None;
     }
 
-    CPUError CPU::change(int address, std::any value)
+    CPUError CPU::change(int address, int value)
     {
-        std::unique_ptr<StellarBase> obj = getObjectFromAddress(address);
+        StellarBase* baseObj = nullptr;
+        getObjectFromAddress(address, baseObj);
 
-        if (!obj)
+        if (baseObj == nullptr)
         {
-            std::cerr<<"\nERROR: UNABLE TO FIND OBJECT FROM ADDRESS "<<address;
+            std::cerr<<"\nERROR: UNABLE TO CHANGE VALUE OF OBJECT FROM ADDRESS "<<address<<" IN CPU!";
             return CPUError_InvalidAddress;
         }
 
-        StellarBase* baseObj = obj.get();
+        std::unique_ptr<StellarBase> newPointer = nullptr;
+        Asteroid* tempA;
+        switch (baseObj->getType())
         {
-            Asteroid* tempA;
-            switch (obj->getType())
-            {
-                case DataType_Int:
-                    tempA = dynamic_cast<Asteroid*>(baseObj);
-                    tempA->setValue(std::any_cast<int>(value));
-                    obj.reset(new Asteroid(*tempA));
-                    break;
-                default:
-                    std::cerr<<"\nERROR: OBJECT HAS AN UNSUPPORTED DATATYPE "<<obj->getType();
-                    return CPUError_InvalidDataType;
-            }
+            case DataType_Int:
+                tempA = dynamic_cast<Asteroid*>(baseObj);
+                tempA->viewAs()->setValue(value);
+                newPointer.reset(new Asteroid(*tempA));
+                break;
+            default:
+                std::cerr<<"\nERROR: OBJECT HAS AN UNSUPPORTED DATATYPE "<<baseObj->getType();
+                return CPUError_InvalidDataType;
         }
 
-        registers.remove(obj);
-        registers.push_back(std::move(obj));
+        removeFromRegister(baseObj);
+        registers.push_back(std::move(newPointer));
         return CPUError_None;
     }
 
-    void CPU::printInRegisters()
+    void CPU::dump()
     {
-        for (std::unique_ptr<StellarBase> &baseObj: registers)
-        {
+        std::cout<<"\nThere are "<<registers.size()<<" items in the CPU";
+        StellarBase* baseObj;
 
+        int value=0;
+        int address=-1;
+        DataType dt = DataType_Invalid;
+
+        for (cpuIt = registers.begin(); cpuIt != registers.end(); cpuIt++)
+        {
+            if (cpuIt->get() != nullptr)
+            {
+                baseObj=cpuIt->get()->viewAs();
+                baseObj->getValue(value);
+                address = baseObj->getAddress();
+                dt = baseObj->getType();
+
+                std::cout<<"\nAddress: "<<address
+                        <<"\nValue: "<<value
+                        <<"\nDataType: "<<dt;
+            }
         }
+
+        cpuIt = registers.end();
+    }
+
+    std::list<std::unique_ptr<StellarBase>>::iterator CPU::removeFromRegister(StellarBase* objPtr)
+    {
+        for (cpuIt = registers.begin(); cpuIt != registers.end(); cpuIt++)
+            if (objPtr->getAddress() == cpuIt->get()->getAddress())
+                return registers.erase(cpuIt);
+
+        return cpuIt;
     }
 }

@@ -6,12 +6,15 @@
             "command": "C:/msys64/ucrt64/bin/g++.exe",
             "args": [
                 "-fdiagnostics-color=always",
+                "-static-libgcc",
+                "-std=c++11",
                 "-g",
                 "${file}",
-                "${workspaceFolder}\\Stella\\system\\memory.cpp",
                 "${workspaceFolder}\\Stella\\system\\datatypes\\base.cpp",
                 "${workspaceFolder}\\Stella\\system\\datatypes\\int.cpp",
+                "${workspaceFolder}\\Stella\\system\\memory.cpp",
                 "${workspaceFolder}\\Stella\\system\\cpu.cpp",
+                "${workspaceFolder}\\Stella\\system\\stio.cpp",
                 "-o",
                 "${fileDirname}\\output\\${fileBasenameNoExtension}.exe"
             ],
